@@ -1,0 +1,32 @@
+body{
+	font-family: sans-serif;
+	font-style: 20px;
+	width: 1200px;
+	margin: 0px auto;
+	background-color: blue;
+	background-image: linear-gradient(red,yellow);
+}
+
+#menu:{
+	height: 200px;
+
+}
+#menu ul{
+	padding: 0px;
+	margin: 0px;
+	padding: 0px;
+}
+#menu ul li{
+	text-align: center;
+	width: 10%;
+	padding: 8px;
+	margin-bottom: 8px;
+	border:2px solid gray;
+	border-radius: 25px;
+	background - color: #33b5e5;
+	color: #ffffff;
+	list-style: none;
+}
+#menu ul li:hover{
+	background-color: #0099cc;
+}
