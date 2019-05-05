@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>bai th4</title>
+	<meta charset="utf-8">
+	<meta name="wiewport" content="width=device-width, initial-scale-1">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<!-- <link rel="stylesheet" href="/style.css"> -->
+    <script src="https://code.jquery.com/jquery-3.4.0.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+</head>
+<script>
+	// hieu ung cua led
+	var on = 'img/ledon.png';
+	var off = 'img/ledoff.png';
+	function bat(){
+		var onled = document.getElementById("onled");
+		var offled = document.getElementById("offled");
+		var hinhanh = document.getElementById("hinhanh");
+	    hinhanh.src = on;
+	    onled.style.color = "white";
+	    offled.style.color = "black";
+	    onled.style.background = "green";
+	    offled.style.background = "white";   
+	 }
+	function tat(){
+		var onled = document.getElementById("onled");
+		var offled = document.getElementById("offled");
+		var hinhanh = document.getElementById("hinhanh");
+	    hinhanh.src = off;
+	    onled.style.color = "black";
+	    offled.style.color = "white";
+	    offled.style.background = "red";
+	    onled.style.background = "white";
+	  }
+	// dieu kien led 
+    var socket = io();
+    $(document).ready(function(){
+        $("#onled").click(function(){
+            socket.emit("control-led","1");    
+        })
+        $("#offled").click(function(){
+            socket.emit("control-led","0");     
+        })
+        $("input").change(function(){
+            var a = $("#demo").text();
+            socket.emit("control-led",a);
+        })
+    })
+    function getvalue(){
+        var a = document.getElementById('myRange').value;
+        var b = Math.round(a*100/255);
+        var hinhanh = document.getElementById("hinhanh");
+        var ledoff = 'img/ledoff.png';
+        var ledon = 'img/ledon.png';
+        var ledon1 = 'img/ledon1.png';
+        var ledon2 = 'img/ledon2.png';
+        var ledon3= 'img/ledon3.png';
+        var ledon4= 'img/ledon4.png';
+        document.getElementById('demo').innerHTML = a;
+        document.getElementById('dosang').innerHTML = b;
+        if(0<=b){
+            hinhanh.src = ledoff;
+        }
+        if(0<b && b<=20){
+            hinhanh.src = ledon1;
+        }
+        if(20<b && b<=40){
+            hinhanh.src = ledon2;
+        }
+        if(40<b && b<=60){
+            hinhanh.src = ledon3;
+        }
+        if(60<b && b<=80){
+            hinhanh.src = ledon4;
+        }
+        if(80<b && b<=100){
+            hinhanh.src = ledon;
+        }
+	}
+	// lay data tu mysql
+	setInterval(function(){                
+        $.getJSON('/room1', function(data){
+			$('#temp').text(data.result.Temperature);
+			$('#hum').text(data.result.Humidity);
+			$('#dust').text(data.result.Dust);
+			$('#maxtemp').text(data.maxtemp.Temperature);
+			$('#mintemp').text(data.mintemp.Temperature);
+			$('#avgtemp').text(data.avgtemp.avgtemp);
+			$('#maxhum').text(data.maxhum.Humidity);
+			$('#minhum').text(data.minhum.Humidity);
+			$('#avghum').text(data.avghum.avghum);
+			$('#maxdust').text(data.maxdust.Dust);
+			$('#mindust').text(data.mindust.Dust);
+			$('#avgdust').text(data.avgdust.avgdust);
+		});
+	}, 500);
+	// chart
+	window.onload = function () {
+	var dps = [];
+	var dps1 = [];
+    var dps2 = [];
+	var chart = new CanvasJS.Chart("chartContainer", {
+        backgroundColor: "#ECF0F5",
+        theme: "light2",
+        title :{
+            text: "Chart"
+        },
+        axisY: {
+            includeZero: false
+        },
+          toolTip: {
+            shared: true
+        },
+        data: [{
+            type: "line",
+            dataPoints: dps,
+            xValueType: "dateTime",
+            xValueFormatString: "hh:mm:ss TT",
+            name: "Temp",
+            color: "#DC143C"
+        },
+        {
+            type: "line",
+            dataPoints: dps1,
+            xValueType: "dateTime",
+            xValueFormatString: "hh:mm:ss TT",
+            name: "Hum",
+            color: "#6495ED"
+        },
+        {
+            type: "line",
+            dataPoints: dps2,
+            xValueType: "dateTime",
+            xValueFormatString: "hh:mm:ss TT",
+            name: "Dust",
+            color: "#696969"
+        }
+        ]
+	});
+	var updateInterval = 1000;
+    var dataLength = 10;
+    var time = new Date;
+    setInterval(function(){ 
+        $.getJSON( '/room1', function( a ) {
+            time.setTime(time.getTime()+ 1000);
+            dps.push({
+                x: time.getTime(),
+                y: a.result.Temperature
+            });
+            dps1.push({
+                x: time.getTime(),
+				y: a.result.Humidity
+            });
+            dps2.push({
+                x: time.getTime(),
+                y: a.result.Dust
+			});
+			chart.render();
+		});
+	}, 1000);
+	}
+// mau background thanh doi theo gia tri
+	setInterval(function(){         
+        $.getJSON( '/room1', function( a ) {
+            var temp = document.getElementById('nhietdo');
+            var hum = document.getElementById('doam');
+            var dust = document.getElementById('dobui');
+            if(a.result.Temperature <= 20){
+                temp.style.background = "#00ffed";
+            }
+            if(a.result.Temperature > 20 && a.result.Temperature <= 30){
+            	temp.style.background = "#00ff7f";
+            }
+            if(a.result.Temperature > 30 && a.result.Temperature <= 40){
+            	temp.style.background = "#ff5400";
+            }
+            if(a.result.Temperature > 40){
+                temp.style.background = "#ff0000";
+            }
+			if(a.result.Humidity <= 50){
+                hum.style.background = "#c7e3ff";
+            }
+            if(a.result.Humidity > 50 && a.result.Humidity <= 85){
+            	hum.style.background = "#8585ff";
+            }
+            if(a.result.Humidity > 85){
+                hum.style.background = "#cf3dff";
+            }
+			if(a.result.Dust <= 30){
+                dust.style.background = "#c2d6d6";
+            }
+            if(a.result.Dust > 30 && a.result.Dust <= 50){
+            	dust.style.background = "#b2b299";
+            }
+            if(a.result.Dust > 50){
+                dust.style.background = "#6e6e3d";
+            }
+        });
+    });
+	</script>
+<body>
+	<div class="header">
+	</div>
+	<div class="main">
+		<div class="left">
+			<ul>
+				<li class="tieude">MENU</li>
+				<li><a href="">Profile</a></li>
+				<li><a href="">Dashboard</a></li>
+			</ul>
+		</div>
+		<div class="right">
+			<div class="p0">
+				<div class="tieude">ROM 1</div>
+			</div>
+			<div class="p1">
+				<div class="ktmoitruong" id="nhietdo">
+					<div class="tieudenho">Temperature</div>
+					<img class="iconnho" src="https://image.flaticon.com/icons/svg/603/603463.svg">
+					<table class="table">
+						<tbody>
+							<tr>
+								<td class="textts">Now: <span id="temp"></span> °C</td>
+							</tr>
+							<tr>
+								<td class="textts">Max: <span id="maxtemp"></span> °C --- Min: <span id="mintemp"></span> °C</td>
+							</tr>
+							<tr>
+								<td class="textts">Average: <span id="avgtemp"></span> °C Today.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="ktmoitruong" id="doam">
+					<div class="tieudenho">Humidity</div>
+					<img class="iconnho" src="https://image.flaticon.com/icons/svg/603/603481.svg">
+					<table class="table">
+						<tbody>
+							<tr>
+								<td class="textts">Now: <span id="hum"></span> %</td>
+							</tr>
+							<tr>
+								<td class="textts">Max: <span id="maxhum"></span> % ---	Min: <span id="minhum"></span> %</td>
+							</tr>
+							<tr>
+								<td class="textts">Average: <span id="avghum"></span> % Today.</td>
+							</tr>
+						</tbody>
+					</table>
+
+				</div>
+				<div class="ktmoitruong" id="dobui">
+					<div class="tieudenho">Dust</div>
+					<img class="iconnho" src="https://image.flaticon.com/icons/svg/603/603494.svg">
+					<table class="table">
+						<tbody>
+							<tr>
+								<td class="textts">Now: <span id="dust"></span> %</td>
+							</tr>
+							<tr>
+								<td class="textts">Max: <span id="maxdust"></span> % --- Min: <span id="mindust"></span> %</td>
+							</tr>
+							<tr>
+								<td class="textts">Average: <span id="avgdust"></span> % Today.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class="p2">
+				<div class="chart">
+					<div class="vitri-chart" id="chartContainer" style="height: 80%; width: 80%;"></div>
+				</div>
+				<div id="background-led" class="led">
+					<div class="tieudenho">Điều Khiểu Bật Tắt LED</div>
+					<img class="vitri-led" id="hinhanh" src="img/ledon.png" alt="Hinh Anh"/>
+					<div class="vitri-button">
+						<button class="button" id="onled" onclick= "bat()">ON LED</button>
+						<button class="button" id="offled" onclick= "tat()">OFF LED</button>
+					</div>
+					<div class="vitri-range">
+						<div class="tieudenho">Điều Kiển LED Sáng Dần</div>
+						<input class="slider" id="myRange" type="range" min="0" max="254" value="0" oninput="getvalue()">
+						<div class="value">Value: <span id="demo"></span> pwm ----- Độ Sáng: <span id="dosang"></span> %</div>			
+					</div>
+				
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="footer">
+	</div>
+</body>
+</html>
